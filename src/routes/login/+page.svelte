@@ -2,32 +2,32 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as Card from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
-	import { Button } from "$lib/components/ui/button"
-	import { Badge } from "$lib/components/ui/badge"
+	import { Button } from '$lib/components/ui/button';
 </script>
 
-<div class="flex h-screen items-center justify-center bg-gradient-to-b from-emerald-500 to-indigo-500">
-	<Card.Root class="w-96">
-		<Card.Header>
-			<Card.Title>Login</Card.Title>
-			<Card.Description>Enter your username and password.</Card.Description>
-		</Card.Header>
-		<Card.Content>
-			<div class="grid w-full items-center gap-4">
-				<div class="flex flex-col space-y-1.5">
-					<Label for="username">Username</Label>
-					<Input id="username" />
+<div class="flex h-screen items-center justify-center">
+	<form method="POST" action="?/login">
+		<Card.Root class="w-96">
+			<Card.Header>
+				<Card.Title>Login</Card.Title>
+				<Card.Description>Enter your email and password.</Card.Description>
+			</Card.Header>
+			<Card.Content>
+				<div class="grid w-full items-center gap-4">
+					<label>
+						<Label for="email">Email</Label>
+						<Input name="email" type="email" required />
+					</label>
+					<label>
+						<Label for="password">Password</Label>
+						<Input name="password" type="password" required />
+					</label>
 				</div>
-				<div class="flex flex-col space-y-1.5">
-					<Label for="password">Password</Label>
-					<Input id="password" />
-				</div>
-			</div>
-		</Card.Content>
-		<Card.Footer class="flex justify-between">
-			<Button variant="outline">Reset</Button>
-			<Button>Login</Button>
-		  </Card.Footer>
-	</Card.Root>
+			</Card.Content>
+			<Card.Footer class="flex flex-row-reverse justify-between">
+				<Button type="submit">Login</Button>
+				<Button variant="outline">Reset</Button>
+			</Card.Footer>
+		</Card.Root>
+	</form>
 </div>
-<Badge class='absolute right-0 bottom-0 m-1'>v{__APP_VERSION__}</Badge>
