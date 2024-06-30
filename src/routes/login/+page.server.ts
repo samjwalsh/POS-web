@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
 export const actions = {
@@ -9,7 +10,7 @@ export const actions = {
         console.log(email);
         console.log(password);
 
-
+		throw redirect(300,'/app/dash')
 		return { success: true };
 	},
 } satisfies Actions;
