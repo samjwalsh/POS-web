@@ -11,6 +11,5 @@ export const actions = {
         console.log(password);
 
 		throw redirect(300,'/app/dash')
-		return { success: true };
 	},
 } satisfies Actions;
