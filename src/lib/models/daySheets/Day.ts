@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-import endOfDaySchema from "./EOD";
+import EOD from "./EOD";
 
 const daySchema = new Schema(
   {
@@ -11,10 +11,10 @@ const daySchema = new Schema(
       unique: true,
     },
     shops: {
-      type: [endOfDaySchema],
+      type: [EOD],
     },
   },
   { collection: 'daysheets' }
 );
 
-export default mongoose.model('daysheets', daySchema);
+export default  mongoose.model('daysheets', daySchema);

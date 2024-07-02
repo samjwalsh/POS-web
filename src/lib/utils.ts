@@ -7,6 +7,25 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
+export const nF = (n: number | string) => {
+	return typeof n === 'number' ? n : parseFloat(n);
+};
+
+const Euro = Intl.NumberFormat('en-IE', {
+	style: 'currency',
+	currency: 'EUR',
+});
+
+export const cF = (n: number | string) => {
+	if (typeof n !== 'number') n = parseFloat(n);
+	return Euro.format(n);
+};
+
+export const fF = (n: number | string) => {
+	if (typeof n !== 'number') n = parseFloat(n);
+	return n.toLocaleString('en-IE', { maximumFractionDigits: 2 });
+};
+
 type FlyAndScaleParams = {
 	y?: number;
 	x?: number;

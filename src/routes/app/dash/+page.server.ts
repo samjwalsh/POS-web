@@ -4,5 +4,7 @@ export function load() {
     // console.log(DB_ADDRESS)
     const rev = getDailyRev();
 
+    
+
     return {rev}
-}
+} 

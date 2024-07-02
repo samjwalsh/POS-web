@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Home, Clock, LineChart, Package2, Archive } from 'lucide-svelte/icons';
+	import { Home, Clock, LineChart, Package2, Archive, Section } from 'lucide-svelte/icons';
 	import Menu from 'lucide-svelte/icons/menu';
 
 	import { page } from '$app/stores';
@@ -79,7 +79,7 @@
 				</Sheet.Content>
 			</Sheet.Root>
 			<div class="w-full flex-1">
-				<h1>Title</h1>
+				<h1>{menuItems.find(section => section.link === selected).name}</h1>
 			</div>
 		</header>
 		<main class="flex flex-1 flex-col gap-4 p-4">
