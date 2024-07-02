@@ -90,57 +90,50 @@ export const POST: RequestHandler = async ({ request }) => {
     return json(createdVouchers);
 };
 
+export const GET: RequestHandler = async ({ request, url }) => {
+    
+    const startTime = new Date();
+    
+    // console.log(params)
+    const shop = url.searchParams.get('shop');
+    const till = url.searchParams.get('till');
+    const key = url.searchParams.get('key');
+    const code = url.searchParams.get('code')?.toUpperCase();
+
+    const matchingVoucher = await db.query.vouchers.findFirst({ where: eq(vouchers.code, code) });
+
+    let outputString = '';
+    if (!matchingVoucher) {
+        outputString = `${code} not found`;
+    } else {
+        outputString = `${code} - €${matchingVoucher.value.toFixed(2)} ${matchingVoucher.redeemed ? 'Redeemed' : 'Not Redeemed'
+            }`;
+    }
+
+    logger(shop, till, 'Check Voucher', Date.now() - startTime.getTime(), ``, outputString);
+
+    if (matchingVoucher) {
+        return json({exists: true, voucher: matchingVoucher });
+    }
+    else
+        return json({exists: false });
+
+
+};
+
 // export const GET: RequestHandler = async ({ request }) => {
+//     const startTime = new Date();
+
+//     console.log(request.bodyUsed)
+//     // request.headers
 //     const {
 //         shop,
 //         till,
-//         key
-//     } = await request.json()
+//         value,
+//         quantity,
+//         key,
+//     } = request.headers;
+
     
-//     // const startTime = new Date();
-    
-//     // const req = await request.json();
-//     // const {
-//     //     shop,
-//     //     till,
-//     //     key
-//     // } = req
-//     // const code = req.code.toUpperCase()
-
-//     // const matchingVoucher = await db.query.vouchers.findFirst({ where: eq(vouchers.code, code) });
-
-//     // let outputString = '';
-//     // if (!matchingVoucher) {
-//     //     outputString = `${code} not found`;
-//     // } else {
-//     //     outputString = `${code} - €${matchingVoucher.value.toFixed(2)} ${matchingVoucher.redeemed ? 'Redeemed' : 'Not Redeemed'
-//     //         }`;
-//     // }
-
-//     // logger(shop, till, 'Check Voucher', Date.now() - startTime.getTime(), ``, outputString);
-
-//     // if (matchingVoucher) {
-//     //     return json({exists: true, voucher: matchingVoucher });
-//     // }
-//     // else
-//         return json({exists: false });
-
-
+//     return json({});
 // };
-
-export const GET: RequestHandler = async ({ request }) => {
-    const startTime = new Date();
-
-    console.log(request.bodyUsed)
-
-    const {
-        shop,
-        till,
-        value,
-        quantity,
-        key,
-    } = await request.json();
-
-    
-    return json({});
-};
