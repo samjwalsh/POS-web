@@ -2,50 +2,7 @@ import TodayOrder from "$lib/models/todaysorders/TodayOrder";
 import Day from "$lib/models/daySheets/Day";
 
 import { db } from "./db";
-import { orders } from "./schema";
-
-const order =
-
-{
-  id: "1719912394875.7797.1.898",
-  time: new Date("2024-07-02T09:26:34.882Z"),
-  shop: "Main",
-  till: 1,
-  deleted: false,
-  eod: false,
-  subtotal: 16,
-  paymentMethod: "Card",
-  items: [
-    {
-      name: "Sundae",
-      price: 4.5,
-      quantity: 2,
-      addons: [
-        "Flake"
-      ],
-    },
-    {
-      name: "Cone",
-      price: 3.5,
-      quantity: 2,
-      addons: [
-        "Flake",
-        "Toppings"
-      ],
-    }
-  ],
-}
-db.insert(orders).values({
-  id: "1719912394875.7797.1.898",
-  time: new Date("2024-07-02T09:26:34.882Z"),
-  shop: "Main",
-  till: 1,
-  deleted: false,
-  eod: false,
-  subtotal: 16,
-  paymentMethod: "Card"
-
-})
+import { items, orders } from "./schema";
 
 export const getDailyRev = async () => {
 
@@ -234,7 +191,7 @@ type Order = {
   till: number,
   deleted: boolean,
   subtotal: number,
-  paymentMethod: string,
+  paymentMethod: "Cash" | "Card",
   items: Array<Item>
 }
 

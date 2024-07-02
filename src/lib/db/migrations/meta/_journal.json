@@ -8,6 +8,27 @@
       "when": 1719935378439,
       "tag": "0000_condemned_rachel_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1719938886924,
+      "tag": "0001_fuzzy_maverick",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1719947250118,
+      "tag": "0002_parallel_oracle",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1719953878557,
+      "tag": "0003_shallow_maddog",
+      "breakpoints": true
     }
   ]
 }

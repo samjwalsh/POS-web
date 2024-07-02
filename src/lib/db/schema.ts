@@ -34,3 +34,16 @@ export const itemsRelations = relations(items, ({ one }) => ({
         references: [orders.id],
     }),
 }));
+
+export const vouchersSchema = pgSchema('vouchers_schema');
+export const vouchers = vouchersSchema.table('vouchers', {
+    dateCreated: timestamp('date_created').notNull(),
+    shopCreated: text('shop_created').notNull(),
+    tillCreated: text('till_created').notNull(),
+    value: real('value').notNull(),
+    code: text('code').primaryKey(),
+    redeemed: boolean('redeemed').notNull(),
+    dateRedeemed: timestamp('date_redeemed'),
+    shopRedeemed: text('shop_redeemed'),
+    tillRedeemed: text('till_redeemed')
+})

@@ -1,0 +1,2 @@
+ALTER TABLE "vouchers_schema"."vouchers" ALTER COLUMN "date_created" SET DATA TYPE timestamp;--> statement-breakpoint
+ALTER TABLE "vouchers_schema"."vouchers" ALTER COLUMN "date_redeemed" SET DATA TYPE timestamp;

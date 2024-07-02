@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
+import {default as ch} from 'chalk';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -32,6 +33,15 @@ type FlyAndScaleParams = {
 	start?: number;
 	duration?: number;
 };
+
+export const logger = (shop:string, till:string, action:string, time:number, topRow:string, bottomRow:string) => {
+	const shopStr = ch.underline.magenta(shop.concat(' ').concat(till));
+	const duration = ch.dim(time.toString().padStart(3, '0') + 'ms');
+	console.log(`${shopStr} ${ch.cyan(action)} ${duration} ${topRow}\n`);
+	if (bottomRow) console.log(`${bottomRow}\n`);
+};
+
+
 
 export const flyAndScale = (
 	node: Element,
