@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/db/db';
 import { vouchers } from '$lib/db/schema';
 import { cF } from '$lib/utils';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import {
     RegExpMatcher,
     englishDataset,
@@ -17,16 +17,14 @@ import { logger } from '$lib/utils';
 
 export const POST: RequestHandler = async ({ request }) => {
     const startTime = new Date();
-
     const {
         shop,
         till,
         value,
         quantity,
-        key,
     } = await request.json();
 
-    if (shop == undefined || till == undefined || value == undefined || quantity == undefined || key == undefined) {
+    if (shop == undefined || till == undefined || value == undefined || quantity == undefined) {
         error(400, "Invalid Data")
     }
 
@@ -90,15 +88,14 @@ export const POST: RequestHandler = async ({ request }) => {
     return json(createdVouchers);
 };
 
-export const GET: RequestHandler = async ({ request, url }) => {
-    
+export const GET: RequestHandler = async ({ url }) => {
     const startTime = new Date();
-    
-    // console.log(params)
+
     const shop = url.searchParams.get('shop');
     const till = url.searchParams.get('till');
-    const key = url.searchParams.get('key');
     const code = url.searchParams.get('code')?.toUpperCase();
+
+    if (shop == undefined || till == undefined || code == undefined) error(400, "Invalid Data")
 
     const matchingVoucher = await db.query.vouchers.findFirst({ where: eq(vouchers.code, code) });
 
@@ -113,27 +110,42 @@ export const GET: RequestHandler = async ({ request, url }) => {
     logger(shop, till, 'Check Voucher', Date.now() - startTime.getTime(), ``, outputString);
 
     if (matchingVoucher) {
-        return json({exists: true, voucher: matchingVoucher });
+        return json({ exists: true, voucher: matchingVoucher });
     }
     else
-        return json({exists: false });
-
-
+        return json({ exists: false });
 };
 
-// export const GET: RequestHandler = async ({ request }) => {
-//     const startTime = new Date();
+export const PATCH: RequestHandler = async ({ request }) => {
+    const startTime = new Date();
+    const body = await request.json();
+    const {
+        shop,
+        till,
+    } = body
+    const code = (body.code as string).toUpperCase();
 
-//     console.log(request.bodyUsed)
-//     // request.headers
-//     const {
-//         shop,
-//         till,
-//         value,
-//         quantity,
-//         key,
-//     } = request.headers;
+    let matchingVoucher = (await db.select().from(vouchers).where(eq(vouchers.code, code)))[0];
 
-    
-//     return json({});
-// };
+    if (!matchingVoucher) {
+        logger(shop, till, 'Redeem Voucher', Date.now() - startTime.getTime(), ``, `${code} not found`);
+        return json({ success: false });
+    }
+
+    if (matchingVoucher.redeemed) {
+        logger(shop, till, 'Redeem Voucher', Date.now() - startTime.getTime(), ``, `${code} already redeemed`);
+        return json({ success: false, dateRedeemed: matchingVoucher.dateRedeemed });
+    }
+
+    matchingVoucher = (await db.update(vouchers).set({
+        redeemed: true,
+        dateRedeemed: new Date(),
+        shopRedeemed: shop,
+        tillRedeemed: till,
+    }).where(and(eq(vouchers.code, code), eq(vouchers.redeemed, false))).returning())[0];
+
+    logger(shop, till, 'Redeem Voucher', Date.now() - startTime.getTime(), ``, `${code} - €${matchingVoucher.value.toFixed(2)}`);
+
+    return json({ success: true, value: matchingVoucher.value });
+
+}
