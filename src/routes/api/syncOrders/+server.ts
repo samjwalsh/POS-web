@@ -3,19 +3,22 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/db/db';
 import { itemsTable, ordersTable } from '$lib/db/schema';
-import { cF } from '$lib/utils';
-import { eq, and, inArray } from 'drizzle-orm';
+import { cF, Timer } from '$lib/utils';
+import { eq, and, inArray, gt } from 'drizzle-orm';
 import { default as ch } from 'chalk';
 import { logger } from '$lib/utils';
 
 
 export const PATCH: RequestHandler = async ({ request }) => {
-    console.log('req in')
     const startTime = new Date();
-    // const timer = new Timer();
-    // timer.time('Request Started');
+    const timer = new Timer();
+    timer.time('Request started');
 
     const { shop, till, allClientOrders } = await request.json();
+
+    timer.time('Collected client orders')
+
+    await db.update(ordersTable).set({ eod: false }).where(gt(ordersTable.time, new Date('2024-05-01')))
 
     if (shop == undefined || till == undefined || !Array.isArray(allClientOrders)) {
         error(400, "Invalid Data")
@@ -25,16 +28,20 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
     let clientOrders: Array<ClientOrder> = []
     const dbOrders = await db.select().from(ordersTable).where(and(eq(ordersTable.shop, shop), eq(ordersTable.eod, false)))
+    console.log(dbOrders.length);
+    console.log(dbOrders[0])
 
     const ordersToAddInDB: Array<ClientOrder> = [];
     const orderIdsToDeleteInDb: Array<string> = [];
     const orderIdsToEodInDb: Array<string> = [];
 
+    const orderIdsToAddInClient: Array<string> = [];
+
     const ordersToAddInClient: Array<ClientOrder> = [];
     const orderIdsToDeleteInClient: Array<string> = [];
     let orderIdsToEodFullyInClient: Array<string> = []
 
-    // timer.time('Initialised Variables (DB Access)');
+    timer.time('Initialised variables (DB access)');
 
     // Populate array of valid client orders
     let clientOrderIndex = 0;
@@ -48,21 +55,27 @@ export const PATCH: RequestHandler = async ({ request }) => {
         if (!clientOrder.deleted) x += clientOrder.subtotal;
     }
 
-    // Now eod and remove any orders in the client which are eoded on the server
-    if (clientOrders.length !== 0) {
-        const clientOrderIDs = clientOrders.map(clientOrder => clientOrder.id);
-        const ordersToEodInClient = await db.select().from(ordersTable).where(and(inArray(ordersTable.id, clientOrderIDs), eq(ordersTable.eod, true)))
-        orderIdsToEodFullyInClient = ordersToEodInClient.map(order => order.id)
-        clientOrders = clientOrders.filter(order => !orderIdsToEodFullyInClient.includes(order.id))
-    }
-    // timer.time('Created array of client orders');
+    timer.time('Created array of client orders')
+
+
 
 
     const clientSorted: Array<ClientOrder> = insertionSortC(clientOrders);
-    // timer.time('Sorted client orders');
-    // console.log(dbOrders)
+    timer.time('Sorted client orders');
+
+    // Now eod and remove any orders in the client which are eoded on the server
+    if (clientOrders.length !== 0) {
+        const clientOrderIDs = clientOrders.map(clientOrder => clientOrder.id);
+        const ordersToEodInClient = await db.select({ id: ordersTable.id }).from(ordersTable).where(inArray(ordersTable.id, clientOrderIDs));
+        console.log(ordersToEodInClient)
+        orderIdsToEodFullyInClient = ordersToEodInClient.map(order => order.id)
+        clientOrders = clientOrders.filter(order => !orderIdsToEodFullyInClient.includes(order.id))
+
+        timer.time('Check for orders to EOD in client');
+    }
+
     const dbSorted = insertionSort(dbOrders);
-    // timer.time('Sorted DB orders');
+    timer.time('Sorted DB orders');
 
     let clientIndex = 0;
     clientOrdersLength = clientSorted.length;
@@ -100,13 +113,10 @@ export const PATCH: RequestHandler = async ({ request }) => {
             // Here the db order is older than the client order, so it must mean that the client is missing this order?
             //TODO
             // Must convert db order to clientOrder type by grabbing its items
-            const dbItems = await db.select().from(itemsTable).where(eq(itemsTable.orderId, dbOrder.id));
-            const orderAndItems: OrderAndItems = { orders: [dbOrder], items: dbItems }
-            const newClientOrder = dbOrderAndItemsToClientOrder(orderAndItems);
-            ordersToAddInClient.push(newClientOrder);
+
             dbIndex++;
-            console.log(ordersToAddInClient.length)
-            if (ordersToAddInClient.length >= 100) break;
+            orderIdsToAddInClient.push(dbOrder.id);
+
         } else if (clientOrder !== undefined && dbOrder !== undefined) {
             // Here the orders are matching, but it means we have to do our standard checks for deletions or EODs
             // console.log('Orders Match')
@@ -122,18 +132,32 @@ export const PATCH: RequestHandler = async ({ request }) => {
         }
     }
 
+    timer.time('Compared orders');
+
+    if (orderIdsToAddInClient.length !== 0) {
+        const dbOrdersAndItems = await db.query.ordersTable.findMany({ with: { items: true }, where: inArray(ordersTable.id, orderIdsToAddInClient) })
+
+        ordersToAddInClient.push(...dbOrdersAndItems);
+        timer.time('Adding orders missing from client (DB Access)')
+    }
+
     if (ordersToAddInDB.length !== 0) {
         try {
             // We have to split each order in to its order component and then the item components
             const { orders: dbOrders, items: dbItems } = clientOrderToDbOrderAndItems(ordersToAddInDB)
 
             // Now we have both our arrays to add to the db
-            await db.insert(ordersTable).values(dbOrders);
+            await db.insert(ordersTable).values(dbOrders).onConflictDoNothing();
             if (dbItems)
-                await db.insert(itemsTable).values(dbItems);
+                await db.insert(itemsTable).values(dbItems).onConflictDoNothing();
+
+
         } catch (e) {
             console.log(e)
         }
+
+        timer.time('Added orders missing in DB (DB Access)');
+
     }
 
     if (orderIdsToDeleteInDb.length !== 0) {
@@ -142,14 +166,20 @@ export const PATCH: RequestHandler = async ({ request }) => {
         } catch (e) {
             console.log(e)
         }
+
+        timer.time('Marked orders in DB as deleted (DB Access)');
+
     }
 
     if (orderIdsToEodInDb.length !== 0) {
         try {
-            await db.update(ordersTable).set({ eod: true }).where(inArray(ordersTable.id, orderIdsToEodInDb))
+            await db.update(ordersTable).set({ eod: true }).where(inArray(ordersTable.id, orderIdsToEodInDb));
+            orderIdsToEodFullyInClient.push(...orderIdsToEodInDb);
         } catch (e) {
             console.log(e)
         }
+        timer.time('Marked orders in DB as EOD (DB Access)');
+
     }
 
     const totalUpdates =

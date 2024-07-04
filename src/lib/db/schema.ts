@@ -1,4 +1,4 @@
-import { serial, text, timestamp, integer, boolean, real, pgSchema } from "drizzle-orm/pg-core";
+import { serial, text, timestamp, integer, boolean, real, json, pgSchema } from "drizzle-orm/pg-core";
 import { relations } from 'drizzle-orm';
 
 export const ordersSchema = pgSchema("orders_schema");
@@ -37,7 +37,7 @@ export const itemsRelations = relations(itemsTable, ({ one }) => ({
 }));
 
 export const vouchersSchema = pgSchema('vouchers_schema');
-export const vouchers = vouchersSchema.table('vouchers', {
+export const vouchersTable = vouchersSchema.table('vouchers', {
     dateCreated: timestamp('date_created').notNull(),
     shopCreated: text('shop_created').notNull(),
     tillCreated: text('till_created').notNull(),
@@ -47,4 +47,13 @@ export const vouchers = vouchersSchema.table('vouchers', {
     dateRedeemed: timestamp('date_redeemed'),
     shopRedeemed: text('shop_redeemed'),
     tillRedeemed: text('till_redeemed')
+})
+
+export const logsSchema = pgSchema('logs_schema');
+export const logsTable = logsSchema.table('logs', {
+    time: timestamp('time').notNull(),
+    source: text('source').notNull(),
+    note: text('note'),
+    json: json('json'),
+    message: text('message')
 })

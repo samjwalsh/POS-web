@@ -2,7 +2,8 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
-import {default as ch} from 'chalk';
+import { default as ch } from 'chalk';
+import { dev } from '$app/environment';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -34,12 +35,83 @@ type FlyAndScaleParams = {
 	duration?: number;
 };
 
-export const logger = (shop:string, till:string, action:string, time:number, topRow:string, bottomRow:string) => {
+export const logger = (shop: string, till: string, action: string, time: number, topRow: string, bottomRow: string) => {
 	const shopStr = ch.underline.magenta(shop.concat(' ').concat(till));
 	const duration = ch.dim(time.toString().padStart(3, '0') + 'ms');
 	console.log(`${shopStr} ${ch.cyan(action)} ${duration} ${topRow}\n`);
 	if (bottomRow) console.log(`${bottomRow}\n`);
 };
+
+export const Timer = class {
+	static quantity = 0;
+	#number: number;
+	#start: Date;
+	constructor() {
+		this.#number = Timer.quantity;
+		this.#start = new Date();
+		if (!dev) return;
+		Timer.quantity++;
+	}
+	time(message: string) {
+		if (!dev) return;
+		const now = new Date();
+
+		const number = this.#number;
+		let numStr = ''
+		switch (number % 6) {
+			case 0: {
+				numStr = ch.red(number);
+				break;
+			}
+			case 1: {
+				numStr = ch.green(number);
+				break;
+			}
+			case 2: {
+				numStr = ch.yellow(number);
+				break;
+			}
+			case 3: {
+				numStr = ch.blue(number);
+				break;
+			}
+			case 4: {
+				numStr = ch.magenta(number);
+				break;
+			}
+			case 5: {
+				numStr = ch.cyan(number);
+			}
+		}
+
+		const time = now.getTime() - this.#start.getTime();
+		let timeStr = time.toString()
+		while (timeStr.length < 5) {
+			timeStr = ' ' + timeStr;
+		}
+
+		switch (true) {
+			case (time < 5): {
+				timeStr = ch.cyan(time);
+				break;
+			}
+			case (time < 30): {
+				timeStr = ch.green(time);
+				break;
+			}
+			case (time < 100): {
+				timeStr = ch.yellow(time);
+				break;
+			}
+			default: {
+				timeStr = ch.red(time);
+			}
+		}
+
+		console.log(`${numStr} ${timeStr}| ${message}`);
+		this.#start = now;
+	}
+}
 
 
 

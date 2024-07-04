@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/db/db';
-import { vouchers } from '$lib/db/schema';
+import { vouchersTable } from '$lib/db/schema';
 import { cF } from '$lib/utils';
 import { eq, and } from 'drizzle-orm';
 import {
@@ -33,7 +33,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     let quantityCreated = 0;
-    const createdVouchers: Array<typeof vouchers.$inferInsert> = [];
+    const createdVouchers: Array<typeof vouchersTable.$inferInsert> = [];
 
     while (quantityCreated < quantity) {
         const matcher = new RegExpMatcher({
@@ -50,7 +50,7 @@ export const POST: RequestHandler = async ({ request }) => {
             obscene = false;
             code = new suid({ dictionary: 'alpha_upper', length: 5 }).rnd();
             const matchingVoucher = await db.query.vouchers.findFirst({
-                where: eq(vouchers.code, code)
+                where: eq(vouchersTable.code, code)
             });
             if (!matchingVoucher) duplicate = false;
 
@@ -59,7 +59,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
         // Now we have our voucher code and we can create the voucher in the DB
 
-        const voucher: typeof vouchers.$inferInsert = {
+        const voucher: typeof vouchersTable.$inferInsert = {
             dateCreated: new Date(),
             value,
             code,
@@ -72,7 +72,7 @@ export const POST: RequestHandler = async ({ request }) => {
         quantityCreated++;
     }
 
-    await db.insert(vouchers).values(createdVouchers)
+    await db.insert(vouchersTable).values(createdVouchers)
 
     logger(
         shop,
@@ -97,7 +97,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     if (shop == undefined || till == undefined || code == undefined) error(400, "Invalid Data")
 
-    const matchingVoucher = await db.query.vouchers.findFirst({ where: eq(vouchers.code, code) });
+    const matchingVoucher = await db.query.vouchers.findFirst({ where: eq(vouchersTable.code, code) });
 
     let outputString = '';
     if (!matchingVoucher) {
@@ -125,7 +125,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
     } = body
     const code = (body.code as string).toUpperCase();
 
-    let matchingVoucher = (await db.select().from(vouchers).where(eq(vouchers.code, code)))[0];
+    let matchingVoucher = (await db.select().from(vouchersTable).where(eq(vouchersTable.code, code)))[0];
 
     if (!matchingVoucher) {
         logger(shop, till, 'Redeem Voucher', Date.now() - startTime.getTime(), ``, `${code} not found`);
@@ -137,12 +137,12 @@ export const PATCH: RequestHandler = async ({ request }) => {
         return json({ success: false, dateRedeemed: matchingVoucher.dateRedeemed });
     }
 
-    matchingVoucher = (await db.update(vouchers).set({
+    matchingVoucher = (await db.update(vouchersTable).set({
         redeemed: true,
         dateRedeemed: new Date(),
         shopRedeemed: shop,
         tillRedeemed: till,
-    }).where(and(eq(vouchers.code, code), eq(vouchers.redeemed, false))).returning())[0];
+    }).where(and(eq(vouchersTable.code, code), eq(vouchersTable.redeemed, false))).returning())[0];
 
     logger(shop, till, 'Redeem Voucher', Date.now() - startTime.getTime(), ``, `${code} - €${matchingVoucher.value.toFixed(2)}`);
 
