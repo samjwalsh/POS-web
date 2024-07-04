@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/db/db';
-import { items, orders } from '$lib/db/schema';
+import { itemsTable, ordersTable } from '$lib/db/schema';
 import { cF } from '$lib/utils';
 import { eq, and, inArray } from 'drizzle-orm';
 import { default as ch } from 'chalk';
@@ -24,7 +24,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
     let x = 0;
 
     let clientOrders: Array<ClientOrder> = []
-    const dbOrders = await db.select().from(orders).where(and(eq(orders.shop, shop), eq(orders.eod, false))).innerJoin(items, eq(orders.id, items.orderId))
+    const dbOrders = await db.select().from(ordersTable).where(and(eq(ordersTable.shop, shop), eq(ordersTable.eod, false)))
 
     const ordersToAddInDB: Array<ClientOrder> = [];
     const orderIdsToDeleteInDb: Array<string> = [];
@@ -50,17 +50,17 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
     // Now eod and remove any orders in the client which are eoded on the server
     if (clientOrders.length !== 0) {
-    const clientOrderIDs = clientOrders.map(clientOrder => clientOrder.id);
-    const ordersToEodInClient = await db.select().from(orders).where(and(inArray(orders.id, clientOrderIDs), eq(orders.eod, true)))
-    orderIdsToEodFullyInClient = ordersToEodInClient.map(order => order.id)
-    clientOrders = clientOrders.filter(order => !orderIdsToEodFullyInClient.includes(order.id))
+        const clientOrderIDs = clientOrders.map(clientOrder => clientOrder.id);
+        const ordersToEodInClient = await db.select().from(ordersTable).where(and(inArray(ordersTable.id, clientOrderIDs), eq(ordersTable.eod, true)))
+        orderIdsToEodFullyInClient = ordersToEodInClient.map(order => order.id)
+        clientOrders = clientOrders.filter(order => !orderIdsToEodFullyInClient.includes(order.id))
     }
     // timer.time('Created array of client orders');
 
 
     const clientSorted: Array<ClientOrder> = insertionSortC(clientOrders);
     // timer.time('Sorted client orders');
-    console.log(dbOrders)
+    // console.log(dbOrders)
     const dbSorted = insertionSort(dbOrders);
     // timer.time('Sorted DB orders');
 
@@ -100,8 +100,13 @@ export const PATCH: RequestHandler = async ({ request }) => {
             // Here the db order is older than the client order, so it must mean that the client is missing this order?
             //TODO
             // Must convert db order to clientOrder type by grabbing its items
-            if (!dbOrder.eod) ordersToAddInClient.push(dbOrder);
+            const dbItems = await db.select().from(itemsTable).where(eq(itemsTable.orderId, dbOrder.id));
+            const orderAndItems: OrderAndItems = { orders: [dbOrder], items: dbItems }
+            const newClientOrder = dbOrderAndItemsToClientOrder(orderAndItems);
+            ordersToAddInClient.push(newClientOrder);
             dbIndex++;
+            console.log(ordersToAddInClient.length)
+            if (ordersToAddInClient.length >= 100) break;
         } else if (clientOrder !== undefined && dbOrder !== undefined) {
             // Here the orders are matching, but it means we have to do our standard checks for deletions or EODs
             // console.log('Orders Match')
@@ -120,11 +125,12 @@ export const PATCH: RequestHandler = async ({ request }) => {
     if (ordersToAddInDB.length !== 0) {
         try {
             // We have to split each order in to its order component and then the item components
-            const { dbOrders, dbItems } = convertToDbOrdersAndItems(ordersToAddInDB)
+            const { orders: dbOrders, items: dbItems } = clientOrderToDbOrderAndItems(ordersToAddInDB)
 
             // Now we have both our arrays to add to the db
-            await db.insert(orders).values(dbOrders);
-            await db.insert(items).values(dbItems);
+            await db.insert(ordersTable).values(dbOrders);
+            if (dbItems)
+                await db.insert(itemsTable).values(dbItems);
         } catch (e) {
             console.log(e)
         }
@@ -132,7 +138,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
     if (orderIdsToDeleteInDb.length !== 0) {
         try {
-            await db.update(orders).set({ deleted: true }).where(inArray(orders.id, orderIdsToDeleteInDb))
+            await db.update(ordersTable).set({ deleted: true }).where(inArray(ordersTable.id, orderIdsToDeleteInDb))
         } catch (e) {
             console.log(e)
         }
@@ -140,7 +146,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
     if (orderIdsToEodInDb.length !== 0) {
         try {
-            await db.update(orders).set({ eod: true }).where(inArray(orders.id, orderIdsToEodInDb))
+            await db.update(ordersTable).set({ eod: true }).where(inArray(ordersTable.id, orderIdsToEodInDb))
         } catch (e) {
             console.log(e)
         }
@@ -203,13 +209,13 @@ export const PATCH: RequestHandler = async ({ request }) => {
     });
 };
 
-const compare = (order1: typeof orders.$inferInsert, order2: typeof orders.$inferInsert) => {
+const compare = (order1: typeof ordersTable.$inferInsert, order2: typeof ordersTable.$inferInsert) => {
     if (order1.id === order2.id) return 0;
     if (order1.id < order2.id) return 1;
     else return -1;
 };
 
-const insertionSort = (inputArr: Array<typeof orders.$inferInsert | ClientOrder>) => {
+const insertionSort = (inputArr: Array<typeof ordersTable.$inferInsert | ClientOrder>) => {
     for (let i = 1; i < inputArr.length; i++) {
         const key = inputArr[i];
         const id = key.id;
@@ -256,8 +262,26 @@ type ClientItem = {
     addons: Array<string>
 }
 
-const convertToDbOrdersAndItems: (clientOrders: Array<ClientOrder>) => OrderAndItems = (clientOrders) => {
-    const output: OrderAndItems = { dbOrders: [], dbItems: [] }
+const dbOrderAndItemsToClientOrder: (orderAndItems: OrderAndItems) => ClientOrder = (orderAndItems) => {
+    const { id, time, shop, till, deleted, eod, subtotal, paymentMethod } = orderAndItems.orders[0];
+    const dbItems = orderAndItems.items === null ? [] : orderAndItems.items;
+    const clientItems: Array<ClientItem> = dbItems.map(({ name, price, quantity, addons }) => { return { name, price, quantity, addons: addons ? addons : [] } });
+    const order: ClientOrder = {
+        id,
+        time,
+        shop,
+        till,
+        deleted,
+        eod,
+        subtotal,
+        paymentMethod,
+        items: clientItems
+    }
+    return order;
+}
+
+const clientOrderToDbOrderAndItems: (clientOrders: Array<ClientOrder>) => OrderAndItems = (clientOrders) => {
+    const output: OrderAndItems = { orders: [], items: [] }
     const ordersLength = clientOrders.length;
     let orderIndex = 0;
     while (orderIndex < ordersLength) {
@@ -265,7 +289,7 @@ const convertToDbOrdersAndItems: (clientOrders: Array<ClientOrder>) => OrderAndI
         [orderIndex];
         orderIndex++;
 
-        const dbOrder: typeof orders.$inferInsert = {
+        const dbOrder: typeof ordersTable.$inferInsert = {
             id: order.id,
             time: new Date(order.time),
             shop: order.shop,
@@ -273,10 +297,11 @@ const convertToDbOrdersAndItems: (clientOrders: Array<ClientOrder>) => OrderAndI
             deleted: order.deleted,
             eod: order.eod,
             subtotal: order.subtotal,
-            paymentMethod: order.paymentMethod
+            paymentMethod: order.paymentMethod,
+            rba: order.items[0].name === "Reconcilliation Balance Adjustment" ? true : false
         }
 
-        output.dbOrders.push(dbOrder)
+        output.orders.push(dbOrder)
 
         // Now we get the items to add in
 
@@ -286,21 +311,21 @@ const convertToDbOrdersAndItems: (clientOrders: Array<ClientOrder>) => OrderAndI
             const item: ClientItem = order.items[itemsIndex];
             itemsIndex++;
 
-            const dbItem: typeof items.$inferInsert = {
+            const dbItem: typeof itemsTable.$inferInsert = {
                 name: item.name,
                 price: item.price,
                 quantity: item.quantity,
-                addons: item.addons,
+                addons: item.addons ? item.addons : [],
                 orderId: order.id
             }
-
-            output.dbItems.push(dbItem)
+            if (Array.isArray(output.items))
+                output.items.push(dbItem)
         }
     }
     return output;
 }
 
 type OrderAndItems = {
-    dbOrders: Array<typeof orders.$inferInsert>,
-    dbItems: Array<typeof items.$inferInsert>
+    orders: Array<typeof ordersTable.$inferInsert>,
+    items: Array<typeof itemsTable.$inferInsert> | null
 }
