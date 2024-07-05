@@ -1,0 +1,10 @@
+-- CREATE TABLE IF NOT EXISTS "logs_schema"."log_messages" (
+-- 	"id" serial PRIMARY KEY NOT NULL,
+-- 	"time" timestamp PRIMARY KEY NOT NULL,
+-- 	"source" text NOT NULL,
+-- 	"note" text,
+-- 	"json" json,
+-- 	"message" text
+-- );
+-- --> statement-breakpoint
+-- -- DROP TABLE "logs_schema"."logs";

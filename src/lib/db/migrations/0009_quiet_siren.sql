@@ -1,0 +1,1 @@
+-- ALTER TABLE "logs_schema"."logs" ADD PRIMARY KEY ("time");

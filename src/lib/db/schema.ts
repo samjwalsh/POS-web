@@ -51,6 +51,7 @@ export const vouchersTable = vouchersSchema.table('vouchers', {
 
 export const logsSchema = pgSchema('logs_schema');
 export const logsTable = logsSchema.table('logs', {
+    id: serial('id').primaryKey(),
     time: timestamp('time').notNull(),
     source: text('source').notNull(),
     note: text('note'),

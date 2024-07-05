@@ -1,0 +1,3 @@
+-- DROP TABLE "logs_schema"."logging";--> statement-breakpoint
+-- DROP TABLE "logs_schema"."log_messages";--> statement-breakpoint
+-- DROP SCHEMA "logs_schema";
