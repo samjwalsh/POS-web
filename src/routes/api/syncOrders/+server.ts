@@ -4,7 +4,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/db/db';
 import { itemsTable, ordersTable } from '$lib/db/schema';
 import { cF, Timer } from '$lib/utils';
-import { eq, and, inArray, gt } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import { default as ch } from 'chalk';
 import { logger } from '$lib/utils';
 
@@ -18,7 +18,6 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
     timer.time('Collected client orders')
 
-    await db.update(ordersTable).set({ eod: false }).where(gt(ordersTable.time, new Date('2024-05-01')))
 
     if (shop == undefined || till == undefined || !Array.isArray(allClientOrders)) {
         error(400, "Invalid Data")
@@ -28,8 +27,6 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
     let clientOrders: Array<ClientOrder> = []
     const dbOrders = await db.select().from(ordersTable).where(and(eq(ordersTable.shop, shop), eq(ordersTable.eod, false)))
-    console.log(dbOrders.length);
-    console.log(dbOrders[0])
 
     const ordersToAddInDB: Array<ClientOrder> = [];
     const orderIdsToDeleteInDb: Array<string> = [];
@@ -55,6 +52,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
         if (!clientOrder.deleted) x += clientOrder.subtotal;
     }
 
+
     timer.time('Created array of client orders')
 
 
@@ -66,8 +64,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
     // Now eod and remove any orders in the client which are eoded on the server
     if (clientOrders.length !== 0) {
         const clientOrderIDs = clientOrders.map(clientOrder => clientOrder.id);
-        const ordersToEodInClient = await db.select({ id: ordersTable.id }).from(ordersTable).where(inArray(ordersTable.id, clientOrderIDs));
-        console.log(ordersToEodInClient)
+        const ordersToEodInClient = await db.select({ id: ordersTable.id }).from(ordersTable).where(and(inArray(ordersTable.id, clientOrderIDs), eq(ordersTable.eod, true)));
         orderIdsToEodFullyInClient = ordersToEodInClient.map(order => order.id)
         clientOrders = clientOrders.filter(order => !orderIdsToEodFullyInClient.includes(order.id))
 
@@ -135,7 +132,8 @@ export const PATCH: RequestHandler = async ({ request }) => {
     timer.time('Compared orders');
 
     if (orderIdsToAddInClient.length !== 0) {
-        const dbOrdersAndItems = await db.query.ordersTable.findMany({ with: { items: true }, where: inArray(ordersTable.id, orderIdsToAddInClient) })
+
+        const dbOrdersAndItems = await db.query.ordersTable.findMany({ with: { items: true }, where: inArray(ordersTable.id, orderIdsToAddInClient), limit: 500 })
 
         ordersToAddInClient.push(...dbOrdersAndItems);
         timer.time('Adding orders missing from client (DB Access)')
@@ -290,24 +288,6 @@ type ClientItem = {
     price: number,
     quantity: number,
     addons: Array<string>
-}
-
-const dbOrderAndItemsToClientOrder: (orderAndItems: OrderAndItems) => ClientOrder = (orderAndItems) => {
-    const { id, time, shop, till, deleted, eod, subtotal, paymentMethod } = orderAndItems.orders[0];
-    const dbItems = orderAndItems.items === null ? [] : orderAndItems.items;
-    const clientItems: Array<ClientItem> = dbItems.map(({ name, price, quantity, addons }) => { return { name, price, quantity, addons: addons ? addons : [] } });
-    const order: ClientOrder = {
-        id,
-        time,
-        shop,
-        till,
-        deleted,
-        eod,
-        subtotal,
-        paymentMethod,
-        items: clientItems
-    }
-    return order;
 }
 
 const clientOrderToDbOrderAndItems: (clientOrders: Array<ClientOrder>) => OrderAndItems = (clientOrders) => {
