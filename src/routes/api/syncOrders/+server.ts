@@ -108,8 +108,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
         } else if (comparison === -1 && dbOrder !== undefined) {
             // console.log('Client missing order');
             // Here the db order is older than the client order, so it must mean that the client is missing this order?
-            //TODO
-            // Must convert db order to clientOrder type by grabbing its items
+
 
             dbIndex++;
             orderIdsToAddInClient.push(dbOrder.id);
@@ -270,6 +269,10 @@ const insertionSortC = (inputArr: Array<ClientOrder>) => {
     }
     return inputArr;
 };
+
+interface Sortable  {
+    id: string 
+}
 
 type ClientOrder = {
     id: string,
