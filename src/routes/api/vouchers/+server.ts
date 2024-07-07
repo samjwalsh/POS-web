@@ -49,7 +49,7 @@ export const POST: RequestHandler = async ({ request }) => {
             duplicate = false;
             obscene = false;
             code = new suid({ dictionary: 'alpha_upper', length: 5 }).rnd();
-            const matchingVoucher = await db.query.vouchers.findFirst({
+            const matchingVoucher = await db.query.vouchersTable.findFirst({
                 where: eq(vouchersTable.code, code)
             });
             if (!matchingVoucher) duplicate = false;
@@ -97,7 +97,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     if (shop == undefined || till == undefined || code == undefined) error(400, "Invalid Data")
 
-    const matchingVoucher = await db.query.vouchers.findFirst({ where: eq(vouchersTable.code, code) });
+    const matchingVoucher = await db.query.vouchersTable.findFirst({ where: eq(vouchersTable.code, code) });
 
     let outputString = '';
     if (!matchingVoucher) {

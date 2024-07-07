@@ -14,11 +14,11 @@
 			</Card.Header>
 			<Card.Content>
 				<div class="grid w-full items-center gap-4">
-					<label>
+					<label for="email">
 						<Label for="email">Email</Label>
 						<Input name="email" type="email" required />
 					</label>
-					<label>
+					<label for="password">
 						<Label for="password">Password</Label>
 						<Input name="password" type="password" required />
 					</label>

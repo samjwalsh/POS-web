@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { gt, lt, and } from "drizzle-orm";
-import { itemsTable, ordersTable } from "../schema";
+import {ordersTable } from "../schema";
 
 export const getRev = async (begin: Date, end: Date) => {
 
@@ -52,22 +52,4 @@ type ShopOutput = {
   total: number,
   cashTotal: number,
   cardTotal: number
-}
-
-type Order = {
-  id: string,
-  time: Date,
-  shop: string,
-  till: number,
-  deleted: boolean,
-  subtotal: number,
-  paymentMethod: "Cash" | "Card",
-  items: Array<Item>
-}
-
-type Item = {
-  name: string,
-  price: number,
-  quantity: number,
-  addons: Array<string>
 }

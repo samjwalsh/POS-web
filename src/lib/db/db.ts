@@ -1,6 +1,6 @@
 import pkg from 'pg';
 const { Client } = pkg;
-import { host, port, user, password, database } from '$env/static/private'
+import { db_host as host, db_port as port, db_user as user, db_password as password, db_database as database } from '$env/static/private'
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from './schema';
 

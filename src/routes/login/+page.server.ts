@@ -7,9 +7,9 @@ export const actions = {
 		const email = data.get('email');
 		const password = data.get('password');
 
-        console.log(email);
-        console.log(password);
+		console.log(email);
+		console.log(password);
 
-		throw redirect(300,'/app/dash')
+		throw redirect(300, '/app/dash')
 	},
 } satisfies Actions;

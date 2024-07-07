@@ -12,7 +12,6 @@
 		const percent = 100 * ((thisWeek - lastWeek) / lastWeek);
 		let str = percent.toFixed(1);
 		if (percent > 0) str = '+' + str;
-		else str = '-' + str;
 		str += '%';
 		return str;
 	};

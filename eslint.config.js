@@ -29,5 +29,18 @@ export default [
 	},
 	{
 		ignores: ['build/', '.svelte-kit/', 'dist/']
+	},
+	{
+		rules: {
+			'jsx-a11y/label-has-associated-control': [
+				2,
+				{
+					labelComponents: ['CustomInputLabel'],
+					labelAttributes: ['label'],
+					controlComponents: ['CustomInput'],
+					depth: 3
+				}
+			]
+		}
 	}
 ];
