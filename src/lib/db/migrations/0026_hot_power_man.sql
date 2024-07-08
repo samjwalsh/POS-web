@@ -1,0 +1,1 @@
+ALTER TABLE "users_schema"."users" ADD CONSTRAINT "users_username_unique" UNIQUE("username");

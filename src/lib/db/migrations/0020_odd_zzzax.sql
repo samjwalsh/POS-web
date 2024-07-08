@@ -1,0 +1,6 @@
+-- CREATE SCHEMA "users_schema";
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "users_schema"."users" (
+-- 	"username" text PRIMARY KEY NOT NULL,
+-- 	"password_hash" text
+-- );

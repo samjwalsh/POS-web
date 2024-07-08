@@ -15,9 +15,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
     timer.time('Request started');
 
     const { shop, till, allClientOrders } = await request.json();
-
     timer.time('Collected client orders')
-
 
     if (shop == undefined || till == undefined || !Array.isArray(allClientOrders)) {
         error(400, "Invalid Data")
@@ -52,11 +50,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
         if (!clientOrder.deleted) x += clientOrder.subtotal;
     }
 
-
     timer.time('Created array of client orders')
-
-
-
 
     const clientSorted: Array<ClientOrder> = insertionSortC(clientOrders);
     timer.time('Sorted client orders');
@@ -147,8 +141,6 @@ export const PATCH: RequestHandler = async ({ request }) => {
             await db.insert(ordersTable).values(dbOrders).onConflictDoNothing();
             if (dbItems)
                 await db.insert(itemsTable).values(dbItems).onConflictDoNothing();
-
-
         } catch (e) {
             console.log(e)
         }

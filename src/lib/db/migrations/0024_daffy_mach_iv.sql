@@ -1,0 +1,5 @@
+-- DROP TABLE "sessions_schema"."sessions";--> statement-breakpoint
+-- DROP TABLE "users_schema"."users";--> statement-breakpoint
+-- DROP SCHEMA "sessions_schema";
+-- --> statement-breakpoint
+-- DROP SCHEMA "users_schema";

@@ -1,4 +1,4 @@
-import { serial, text, timestamp, integer, boolean, real, json, pgSchema } from "drizzle-orm/pg-core";
+import { serial, text, timestamp, integer, boolean, real, json, pgSchema, pgTable } from "drizzle-orm/pg-core";
 import { relations } from 'drizzle-orm';
 
 export const ordersSchema = pgSchema("orders_schema");
@@ -57,4 +57,23 @@ export const logsTable = logsSchema.table('logs', {
     note: text('note'),
     json: json('json'),
     message: text('message')
+})
+
+export const usersSchema = pgSchema('users_schema');
+export const usersTable = usersSchema.table('users', {
+    id: text("id").primaryKey(),
+    username: text('username').unique().notNull(),
+    password_hash: text('password_hash').notNull()
+})
+
+export const sessionsSchema = pgSchema('sessions_schema');
+export const sessionsTable = sessionsSchema.table('sessions', {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+        .notNull()
+        .references(() => usersTable.id),
+    expiresAt: timestamp("expires_at", {
+        withTimezone: true,
+        mode: "date"
+    }).notNull()
 })

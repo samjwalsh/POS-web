@@ -1,0 +1,31 @@
+-- CREATE SCHEMA "sessions_schema";
+-- --> statement-breakpoint
+-- CREATE TABLE IF NOT EXISTS "sessions_schema"."sessions" (
+-- 	"id" text PRIMARY KEY NOT NULL,
+-- 	"user_id" text NOT NULL,
+-- 	"expires_at" timestamp with time zone NOT NULL
+-- );
+-- --> statement-breakpoint
+-- /* 
+--     Unfortunately in current drizzle-kit version we can't automatically get name for primary key.
+--     We are working on making it available!
+
+--     Meanwhile you can:
+--         1. Check pk name in your database, by running
+--             SELECT constraint_name FROM information_schema.table_constraints
+--             WHERE table_schema = 'users_schema'
+--                 AND table_name = 'users'
+--                 AND constraint_type = 'PRIMARY KEY';
+--         2. Uncomment code below and paste pk name manually
+        
+--     Hope to release this update as soon as possible
+-- */
+
+-- ALTER TABLE "users" DROP CONSTRAINT "users_pkey";--> statement-breakpoint
+-- ALTER TABLE "users_schema"."users" ALTER COLUMN "username" DROP NOT NULL;--> statement-breakpoint
+-- ALTER TABLE "users_schema"."users" ADD COLUMN "id" text NOT NULL;--> statement-breakpoint
+-- DO $$ BEGIN
+--  ALTER TABLE "sessions_schema"."sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "users_schema"."users"("id") ON DELETE no action ON UPDATE no action;
+-- EXCEPTION
+--  WHEN duplicate_object THEN null;
+-- END $$;
