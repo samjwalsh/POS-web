@@ -72,7 +72,9 @@
 			</Alert.Root>
 		{/await}
 	</Card.Root>
-	{#await data.last30Days then last30Days}
-		<DailyRevenue data={last30Days}></DailyRevenue>
-	{/await}
+	<Card.Root class="h-full w-full">
+		{#await data.last30Days then last30Days}
+			<DailyRevenue data={last30Days}></DailyRevenue>
+		{/await}
+	</Card.Root>
 </div>
