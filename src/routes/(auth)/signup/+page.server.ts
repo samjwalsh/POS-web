@@ -29,7 +29,6 @@ export const actions: Actions = {
         //TODO create check to make sure username is in list of current invitations
 
         const data = { firstName, lastName, username, password, confirm }
-        console.log(data)
         const validate = formSchema.safeParse(data);
         if (!validate.success) {
             return fail(400, {

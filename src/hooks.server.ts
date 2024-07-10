@@ -4,7 +4,8 @@ import { error, redirect } from '@sveltejs/kit';
 import { lucia } from "$lib/server/auth";
 
 export const handle: Handle = async ({ event, resolve }) => {
-    console.log(`Request from ${event.getClientAddress()} to ${event.url.pathname}`)
+    console.log(`Request from ${event.request.headers.get("x-forwarded-for") || event.getClientAddress()
+        } to ${event.url.pathname}`)
     if (event.url.pathname.startsWith('/api')) {
         if (event.request.headers.get('key') !== sync_key) { console.log('Not Authenticated'); error(400, "Not Authenticated") };
         return resolve(event)

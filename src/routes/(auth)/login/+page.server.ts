@@ -61,8 +61,6 @@ export const actions: Actions = {
             ...sessionCookie.attributes
         });
 
-        console.log('signed in')
-
         redirect(302, "/app/dash");
     }
 };
