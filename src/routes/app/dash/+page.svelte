@@ -7,6 +7,7 @@
 	import CircleAlert from 'lucide-svelte/icons/circle-alert';
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import { Progress } from '$lib/components/ui/progress';
+	import DailyRevenue from './DailyRevenue.svelte';
 
 	const calculatePercentStr = (thisWeek: number, lastWeek: number) => {
 		const percent = 100 * ((thisWeek - lastWeek) / lastWeek);
@@ -71,4 +72,7 @@
 			</Alert.Root>
 		{/await}
 	</Card.Root>
+	{#await data.last30Days then last30Days}
+		<DailyRevenue data={last30Days}></DailyRevenue>
+	{/await}
 </div>

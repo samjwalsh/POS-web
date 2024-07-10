@@ -1,0 +1,2 @@
+-- ALTER TABLE "users_schema"."users" ALTER COLUMN "first_name" SET DEFAULT 'FirstName';--> statement-breakpoint
+-- ALTER TABLE "users_schema"."users" ALTER COLUMN "last_name" SET DEFAULT 'LastName';

@@ -6,6 +6,9 @@ import { db } from "$lib/db/db";
 import { usersTable } from "$lib/db/schema";
 import { eq } from "drizzle-orm";
 
+
+import { formSchema } from "./schema";
+
 import type { Actions } from "./$types";
 
 export const actions: Actions = {
@@ -13,18 +16,16 @@ export const actions: Actions = {
         const formData = await event.request.formData();
         const username = formData.get("username");
         const password = formData.get("password");
+        const data = { username, password }
 
-        if (
-            typeof username !== "string" ||
-            username.length < 3 ||
-            username.length > 31 ||
-            !/^[a-z0-9_-]+$/.test(username)
-        ) {
+        const validate = formSchema.safeParse(data);
+        if (!validate.success) {
             return fail(400, {
-                message: "Invalid username"
+                message: validate.error.errors[0].message
             });
         }
-        if (typeof password !== "string" || password.length < 6 || password.length > 255) {
+
+        if (typeof password !== "string" || typeof username !== "string") {
             return fail(400, {
                 message: "Invalid password"
             });
@@ -46,12 +47,7 @@ export const actions: Actions = {
             });
         }
 
-        const validPassword = await verify(existingUser.password_hash, password, {
-            memoryCost: 19456,
-            timeCost: 2,
-            outputLen: 32,
-            parallelism: 1
-        });
+        const validPassword = await verify(existingUser.password_hash, password);
         if (!validPassword) {
             return fail(400, {
                 message: "Incorrect username or password"
@@ -64,6 +60,8 @@ export const actions: Actions = {
             path: ".",
             ...sessionCookie.attributes
         });
+
+        console.log('signed in')
 
         redirect(302, "/app/dash");
     }

@@ -63,7 +63,9 @@ export const usersSchema = pgSchema('users_schema');
 export const usersTable = usersSchema.table('users', {
     id: text("id").primaryKey(),
     username: text('username').unique().notNull(),
-    password_hash: text('password_hash').notNull()
+    password_hash: text('password_hash').notNull(),
+    firstName: text('first_name').default('first'),
+    lastName: text('last_name').default('last'),
 })
 
 export const sessionsSchema = pgSchema('sessions_schema');
