@@ -20,6 +20,7 @@ const Euro = Intl.NumberFormat('en-IE', {
 
 export const cF = (n: number | string) => {
 	if (typeof n !== 'number') n = parseFloat(n);
+	if (isNaN(n)) n = 0;
 	return Euro.format(n);
 };
 

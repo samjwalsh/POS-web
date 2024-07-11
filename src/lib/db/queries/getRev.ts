@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { gt, lt, and } from "drizzle-orm";
-import {ordersTable } from "../schema";
+import { ordersTable } from "../schema";
 
 export const getRev = async (begin: Date, end: Date) => {
 
@@ -8,7 +8,7 @@ export const getRev = async (begin: Date, end: Date) => {
   const orders = await db.select().from(ordersTable).where(and(gt(ordersTable.time, begin), lt(ordersTable.time, end)))
 
   const shops: Array<string> = [];
-  const output: Output = { total: 0, cashTotal: 0, cardTotal: 0, orders: 0, shops: [] };
+  const output: getRevOutput = { total: 0, cashTotal: 0, cardTotal: 0, orders: 0, shops: [] };
 
   let orderIndex = 0;
   const ordersLength = orders.length;
@@ -16,7 +16,6 @@ export const getRev = async (begin: Date, end: Date) => {
     const order = orders[orderIndex];
     orderIndex++;
     if (order.deleted) continue;
-    if (!order.rba) { output.orders++ };
 
     if (!shops.includes(order.shop)) {
       output.shops.push({
@@ -24,6 +23,7 @@ export const getRev = async (begin: Date, end: Date) => {
         total: 0,
         cashTotal: 0,
         cardTotal: 0,
+        orders: 0
       });
       shops.push(order.shop);
     }
@@ -32,15 +32,17 @@ export const getRev = async (begin: Date, end: Date) => {
     if (shopOutput === undefined) continue;
     if (order.paymentMethod === 'Card') { shopOutput.cardTotal += order.subtotal; output.cardTotal += order.subtotal }
     else { shopOutput.cashTotal += order.subtotal; output.cashTotal += order.subtotal }
-
+    shopOutput.orders++;
+    output.orders++;
   }
+
   output.total = output.cardTotal + output.cashTotal;
   return output;
 
 }
 
 
-type Output = {
+export type getRevOutput = {
   total: number,
   cashTotal: number,
   cardTotal: number,
@@ -51,5 +53,6 @@ type ShopOutput = {
   name: string,
   total: number,
   cashTotal: number,
-  cardTotal: number
+  cardTotal: number,
+  orders: number,
 }
