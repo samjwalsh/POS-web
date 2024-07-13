@@ -41,36 +41,32 @@
 	<Table.Header>
 		<Table.Row>
 			<Table.Head class="w-[100px]">Unit</Table.Head>
-			<Table.Head>Orders</Table.Head>
-			<Table.Head class="text-right">Hourly</Table.Head>
-			<Table.Head class="text-right">Average</Table.Head>
-			<Table.Head class="text-right">Cash</Table.Head>
-			<Table.Head class="text-right">Card</Table.Head>
 			<Table.Head class="text-right">Total</Table.Head>
+			<Table.Head class="text-right">Hourly</Table.Head>
+			<Table.Head class="text-right">Card</Table.Head>
+			<Table.Head class="text-right">Cash</Table.Head>
+			<Table.Head class="text-right">Orders</Table.Head>
+			<Table.Head class="text-right">Average</Table.Head>
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
 		{#each data as shop, i (i)}
 			<Table.Row>
 				<Table.Cell class="font-medium">{shop.unit}</Table.Cell>
-				<Table.Cell>{shop.orders}</Table.Cell>
-				{#if shop.rr <= 0}
-					<Table.Cell class="text-right"><Badge variant="destructive">Closed</Badge></Table.Cell>
-				{:else}
-					<Table.Cell class="text-right">{cF(shop.rr)}</Table.Cell>
-				{/if}
 				<Table.Cell class="text-right">
-					{cF((shop.cashTotal + shop.cardTotal) / shop.orders)}
+					{cF(shop.cashTotal + shop.cardTotal)}
 				</Table.Cell>
+				<Table.Cell class="text-right">{cF(shop.rr)}</Table.Cell>
 
-				<Table.Cell class="text-right">
-					<div class="">{cF(shop.cashTotal)}</div></Table.Cell
-				>
 				<Table.Cell class="text-right">
 					{cF(shop.cardTotal)}
 				</Table.Cell>
 				<Table.Cell class="text-right">
-					{cF(shop.cashTotal + shop.cardTotal)}
+					<div class="">{cF(shop.cashTotal)}</div></Table.Cell
+				>
+				<Table.Cell class="text-right">{shop.orders}</Table.Cell>
+				<Table.Cell class="text-right">
+					{cF((shop.cashTotal + shop.cardTotal) / shop.orders)}
 				</Table.Cell>
 			</Table.Row>
 		{/each}

@@ -9,8 +9,6 @@
 	import DailyRevenue from './DailyRevenue.svelte';
 	import ShopsInfo from './ShopsInfo.svelte';
 
-
-
 	const calculatePercentStr = (thisWeek: number, lastWeek: number) => {
 		const percent = 100 * ((thisWeek - lastWeek) / lastWeek);
 		let str = percent.toFixed(1);
@@ -75,14 +73,20 @@
 		{/await}
 	</Card.Root>
 	<Card.Root class="col-span-2 row-span-2 h-96 overflow-x-scroll md:overflow-x-hidden">
-		{#await data.todaysRev then todaysRev}
-			{#await data.rollingRevenue then rollingRevenue}
+		{#await data.todaysRev}
+			<Skeleton class="h-full w-full" />
+		{:then todaysRev}
+			{#await data.rollingRevenue}
+				<Skeleton class="h-full w-full" />
+			{:then rollingRevenue}
 				<ShopsInfo {rollingRevenue} {todaysRev}></ShopsInfo>
 			{/await}
 		{/await}
 	</Card.Root>
 	<Card.Root class="col-span-2 row-span-2 h-96 ">
-		{#await data.last30Days then last30Days}
+		{#await data.last30Days}
+			<Skeleton class="h-full w-full" />
+		{:then last30Days}
 			<DailyRevenue data={last30Days}></DailyRevenue>
 		{/await}
 	</Card.Root>
