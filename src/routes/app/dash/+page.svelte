@@ -72,7 +72,7 @@
 			</Alert.Root>
 		{/await}
 	</Card.Root>
-	<Card.Root class="col-span-2 row-span-2 h-96 overflow-x-scroll md:overflow-x-hidden">
+	<Card.Root class="col-span-2 row-span-2 h-96 overflow-x-scroll md:overflow-x-hidden no-scrollbar">
 		{#await data.todaysRev}
 			<Skeleton class="h-full w-full" />
 		{:then todaysRev}

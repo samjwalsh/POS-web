@@ -5,6 +5,7 @@
 	export let rollingRevenue: Array<RollingRevenue>;
 	export let todaysRev: getRevOutput;
 	import { Badge } from '$lib/components/ui/badge/index.js';
+	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
 
 	import { cF, nF } from '$lib/utils';
 
@@ -36,39 +37,41 @@
 	};
 </script>
 
-<Table.Root class="w-full">
-	<Table.Caption></Table.Caption>
-	<Table.Header>
-		<Table.Row>
-			<Table.Head class="w-[100px]">Unit</Table.Head>
-			<Table.Head class="text-right">Total</Table.Head>
-			<Table.Head class="text-right">Hourly</Table.Head>
-			<Table.Head class="text-right">Card</Table.Head>
-			<Table.Head class="text-right">Cash</Table.Head>
-			<Table.Head class="text-right">Orders</Table.Head>
-			<Table.Head class="text-right">Average</Table.Head>
-		</Table.Row>
-	</Table.Header>
-	<Table.Body>
-		{#each data as shop, i (i)}
+<ScrollArea class="w-full" orientation="horizontal">
+	<Table.Root class="w-full">
+		<Table.Caption></Table.Caption>
+		<Table.Header>
 			<Table.Row>
-				<Table.Cell class="font-medium">{shop.unit}</Table.Cell>
-				<Table.Cell class="text-right">
-					{cF(shop.cashTotal + shop.cardTotal)}
-				</Table.Cell>
-				<Table.Cell class="text-right">{cF(shop.rr)}</Table.Cell>
-
-				<Table.Cell class="text-right">
-					{cF(shop.cardTotal)}
-				</Table.Cell>
-				<Table.Cell class="text-right">
-					<div class="">{cF(shop.cashTotal)}</div></Table.Cell
-				>
-				<Table.Cell class="text-right">{shop.orders}</Table.Cell>
-				<Table.Cell class="text-right">
-					{cF((shop.cashTotal + shop.cardTotal) / shop.orders)}
-				</Table.Cell>
+				<Table.Head class="w-[100px]">Unit</Table.Head>
+				<Table.Head class="text-right">Total</Table.Head>
+				<Table.Head class="text-right">Hourly</Table.Head>
+				<Table.Head class="text-right">Card</Table.Head>
+				<Table.Head class="text-right">Cash</Table.Head>
+				<Table.Head class="text-right">Orders</Table.Head>
+				<Table.Head class="text-right">Average</Table.Head>
 			</Table.Row>
-		{/each}
-	</Table.Body>
-</Table.Root>
+		</Table.Header>
+		<Table.Body>
+			{#each data as shop, i (i)}
+				<Table.Row>
+					<Table.Cell class="font-medium">{shop.unit}</Table.Cell>
+					<Table.Cell class="text-right">
+						{cF(shop.cashTotal + shop.cardTotal)}
+					</Table.Cell>
+					<Table.Cell class="text-right">{cF(shop.rr)}</Table.Cell>
+
+					<Table.Cell class="text-right">
+						{cF(shop.cardTotal)}
+					</Table.Cell>
+					<Table.Cell class="text-right">
+						<div class="">{cF(shop.cashTotal)}</div></Table.Cell
+					>
+					<Table.Cell class="text-right">{shop.orders}</Table.Cell>
+					<Table.Cell class="text-right">
+						{cF((shop.cashTotal + shop.cardTotal) / shop.orders)}
+					</Table.Cell>
+				</Table.Row>
+			{/each}
+		</Table.Body>
+	</Table.Root>
+</ScrollArea>

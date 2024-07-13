@@ -49,7 +49,7 @@
 		</Svg>
 		<Tooltip
 			header={(data) => format(data.day, 'eee, MMMM do')}
-			class="bg-background bg-opacity-75 border backdrop-blur-xl"
+			class="border bg-background bg-opacity-95 backdrop-blur-sm"
 			let:data
 		>
 			{#each getTooltips(data.day) as tooltip}

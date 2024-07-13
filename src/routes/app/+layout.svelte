@@ -6,6 +6,7 @@
 
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
+	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
 
 	let menuItems = [
 		{ name: 'Dashboard', link: 'dash', icon: Home },
@@ -79,11 +80,13 @@
 				</Sheet.Content>
 			</Sheet.Root>
 			<div class="w-full flex-1">
-				<h1>{menuItems.find(section => section.link === selected).name}</h1>
+				<h1>{menuItems.find((section) => section.link === selected).name}</h1>
 			</div>
 		</header>
-		<main class="flex flex-1 flex-col gap-4 p-4">
-			<slot />
+		<main class="flex flex-1 flex-col gap-4 p-4 no-scrollbar">
+			<ScrollArea orientation="vertical">
+				<slot />
+			</ScrollArea>
 		</main>
 	</div>
 </div>
