@@ -11,6 +11,7 @@
 
 	const calculatePercentStr = (thisWeek: number, lastWeek: number) => {
 		const percent = 100 * ((thisWeek - lastWeek) / lastWeek);
+		if (isNaN(percent)) return 'No change'
 		let str = percent.toFixed(1);
 		if (percent > 0) str = '+' + str;
 		str += '%';

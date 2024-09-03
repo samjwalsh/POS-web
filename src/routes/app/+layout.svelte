@@ -1,6 +1,22 @@
 <script lang="ts">
-	import { Home, Clock, LineChart, Package2, Archive, Section } from 'lucide-svelte/icons';
+	import { Home, Clock, LineChart, Package2, Archive, Sun, Moon } from 'lucide-svelte/icons';
 	import Menu from 'lucide-svelte/icons/menu';
+
+	import { getSettings } from 'svelte-ux';
+	import { mode } from 'mode-watcher';
+	import { setMode } from 'mode-watcher';
+
+	const { currentTheme, themes } = getSettings();
+
+	const toggleTheme = () => {
+		if ($mode === 'dark') {
+			setMode('light');
+			currentTheme.setTheme('light');
+		} else {
+			setMode('dark');
+			currentTheme.setTheme('dark');
+		}
+	};
 
 	import { page } from '$app/stores';
 
@@ -82,8 +98,17 @@
 			<div class="w-full flex-1">
 				<h1>{menuItems.find((section) => section.link === selected).name}</h1>
 			</div>
+			<Button on:click={toggleTheme} variant="outline" size="icon">
+				<Sun
+					class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+				/>
+				<Moon
+					class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+				/>
+				<span class="sr-only">Toggle theme</span>
+			</Button>
 		</header>
-		<main class="flex flex-1 flex-col gap-4 p-4 no-scrollbar">
+		<main class="no-scrollbar flex flex-1 flex-col gap-4 p-4">
 			<ScrollArea orientation="vertical">
 				<slot />
 			</ScrollArea>

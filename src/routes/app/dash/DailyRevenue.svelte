@@ -2,6 +2,9 @@
 	import { scaleBand, scaleOrdinal } from 'd3-scale';
 	import { extent } from 'd3-array';
 	import { format } from 'date-fns';
+	import { mode } from 'mode-watcher';
+	import { getSettings } from 'svelte-ux';
+	const { currentTheme } = getSettings();
 
 	import { Axis, Bars, Chart, Svg, createStackData, Tooltip, TooltipItem } from 'layerchart';
 	import type { Output } from '$lib/db/queries/getLast30Days';
@@ -11,8 +14,17 @@
 	const stackedData = createStackData(data, { xKey: 'day', stackBy: 'shop' });
 	const colorKeys = [...new Set(data.map((x) => x.shop))];
 	// const keyColors = ['#ff5861', '#00a96e', '#ffbe00', '#00b5ff'];
-	const keyColors = ['#111', '#444', '#777', '#bbb'];
 
+	$: keyColors = setKeyColours($currentTheme.theme);
+
+	const setKeyColours = (mode: string | null) => {
+		console.log($currentTheme.theme);
+		if (mode === 'dark') {
+			return ['#fff', '#ddd', '#bbb', '#999'];
+		} else {
+			return ['#111', '#444', '#777', '#aaa'];
+		}
+	};
 	const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 	const getTooltips = (day: Date) => {
@@ -43,9 +55,9 @@
 		tooltip={{ mode: 'band' }}
 	>
 		<Svg>
-			<Axis placement="left" grid rule />
-			<Axis placement="bottom" format={(d) => days[d.getDay()]} rule />
-			<Bars radius={2} strokeWidth={1} />
+			<Axis placement="left" />
+			<Axis placement="bottom" format={(d) => days[d.getDay()]} />
+			<Bars radius={3} strokeWidth={0} />
 		</Svg>
 		<Tooltip
 			header={(data) => format(data.day, 'eee, MMMM do')}
